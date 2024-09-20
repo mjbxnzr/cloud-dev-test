@@ -1,5 +1,5 @@
 provider "aws" {
-  region                      = "eu-west-1"
+  region                      = "ap-southeast-1"
   access_key                  = "null"
   secret_key                  = "null"
   s3_use_path_style           = true
@@ -8,8 +8,29 @@ provider "aws" {
   skip_requesting_account_id  = true
 
   endpoints {
-    s3  = "http://localhost:4566"
-    sts = "http://localhost:4566"
+    apigateway     = "http://localhost:4566"
+    cloudformation = "http://localhost:4566"
+    cloudfront = "http://localhost:4566"
+    cloudwatch     = "http://localhost:4566"
+    dynamodb       = "http://localhost:4566"
+    es             = "http://localhost:4566"
+    firehose       = "http://localhost:4566"
+    iam            = "http://localhost:4566"
+    kinesis        = "http://localhost:4566"
+    lambda         = "http://localhost:4566"
+    route53        = "http://localhost:4566"
+    redshift       = "http://LOCALHOST:4566"
+    s3             = "http://localhost:4566"
+    secretsmanager = "http://localhost:4566"
+    ses            = "http://localhost:4566"
+    sns            = "http://localhost:4566"
+    sqs            = "http://localhost:4566"
+    ssm            = "http://localhost:4566"
+    stepfunctions  = "http://localhost:4566"
+    sts            = "http://localhost:4566"
+    ec2            = "http://localhost:4566"
+    elbv2          = "http://localhost:4566"
+
   }
 }
 
@@ -17,7 +38,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.1"
+      version = "~> 5.0.0"
     }
   }
   required_version = ">= 1.0.0"
