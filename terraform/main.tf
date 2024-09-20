@@ -75,40 +75,44 @@ module "my_nat_gw" {
 }
 #
 #
-# # S3 bucket
-# resource "aws_s3_bucket" "my_bucket" {
-#   bucket = var.bucket_name
+# S3 bucket
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = var.bucket_name
+
+  tags = {
+    Name        = "Mybucket"
+    Environment = "Dev"
+  }
+}
+
+resource "aws_s3_bucket_acl" "my_bucket" {
+  bucket = aws_s3_bucket.my_bucket.id
+  acl    = "private"
+}
+
+module "my_scg" {
+  source = "./06-scg"
+  vpc_id = module.vpc.vpc_id
+}
+resource "aws_s3_bucket_versioning" "versioning_example" {
+  bucket = aws_s3_bucket.my_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
 #
-#   tags = {
-#     Name        = "Mybucket"
-#     Environment = "Dev"
-#   }
-# }
 #
-# resource "aws_s3_bucket_acl" "my_bucket" {
-#   bucket = aws_s3_bucket.my_bucket.id
-#   acl    = "private"
-# }
-#
-# resource "aws_s3_bucket_versioning" "versioning_example" {
-#   bucket = aws_s3_bucket.my_bucket.id
-#   versioning_configuration {
-#     status = "Enabled"
-#   }
-# }
-#
-#
-# # Create EC2 instance
-# resource "aws_instance" "my_ec2_1a" {
-#   ami           = var.ami  # Amazon Linux 2 AMI
-#   instance_type = var.instance_type
-#   subnet_id     = aws_subnet.private_subnet_1a.id
-#   security_groups = [aws_security_group.ec2_sg.name]
-#
-#   tags = {
-#     Name = "MyEC2Instance-1a"
-#   }
-# }
+# Create EC2 instance
+resource "aws_instance" "my_ec2_1a" {
+  ami           = var.ami  # Amazon Linux 2 AMI
+  instance_type = var.instance_type
+  subnet_id     = module.subnets_private.subnet_ids[0]
+  security_groups = [module.my_scg.ec2_scg_name]
+
+  tags = {
+    Name = "MyEC2Instance-1a"
+  }
+}
 #
 # # Launch Template for EC2 instances
 # # resource "aws_launch_template" "template" {
