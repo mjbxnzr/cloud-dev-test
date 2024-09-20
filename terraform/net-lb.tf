@@ -4,15 +4,6 @@ resource "aws_lb_target_group" "tg" {
   protocol = "TCP"
   vpc_id   = aws_vpc.my_vpc.id
 
-  health_check {
-    path                = "/"
-    port                = "traffic-port"
-    protocol            = "TCP"
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 30
-  }
 }
 
 resource "aws_lb" "nlb" {
@@ -20,7 +11,7 @@ resource "aws_lb" "nlb" {
   internal           = false
   load_balancer_type = "network"
   security_groups    = [aws_security_group.nlb_security_group.id]
-  subnets            = aws_subnet.main_subnet
+  subnets            = [aws_subnet.main_subnet.id]
 
   enable_deletion_protection = false
 }
