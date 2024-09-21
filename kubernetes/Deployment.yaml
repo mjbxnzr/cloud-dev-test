@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-deployment
+  labels:
+    app: busybox
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command: ["sleep", "3600"]
+        resources:
+          requests:
+            cpu: 200m
+          limits:
+            cpu: 500m
+        env:
+        - name: USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: my-secret
+              key: username
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: my-secret
+              key: password
+        volumeMounts:
+        - mountPath: /mnt/efs
+          name: efs-volume
+        - mountPath: /mnt/configmap
+          name: config-volume
+      volumes:
+      - name: efs-volume
+        persistentVolumeClaim:
+          claimName: efs-pvc
+      - name: config-volume
+        configMap:
+          name: emptydir-configmap
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - busybox
+              topologyKey: "topology.kubernetes.io/zone"
