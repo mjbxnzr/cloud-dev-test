@@ -2,10 +2,10 @@
 resource "aws_route_table" "main_route_table" {
   vpc_id = var.vpc_id  # Replace with your VPC ID
 
-  route {
-    cidr_block = "192.168.0.0/16"
-    gateway_id = "local"  # The local route stays within the VPC
-  }
+#   route {
+#     cidr_block = "192.168.0.0/16"
+#     gateway_id = "local"  # The local route stays within the VPC
+#   }
 
   tags = {
     Name = "MainRouteTable"
@@ -20,12 +20,6 @@ resource "aws_main_route_table_association" "main_route_table_association" {
 #
 resource "aws_route_table" "public_route_table" {
   vpc_id = var.vpc_id
-
-  # Route for VPC local traffic
-  route {
-    cidr_block = "192.168.0.0/16"
-    gateway_id = "local"  # Local VPC route
-  }
 
   # Route for Internet access (default route)
   route {
@@ -47,16 +41,10 @@ resource "aws_route_table_association" "public_route_table_association" {
 resource "aws_route_table" "private_route_table" {
   vpc_id = var.vpc_id
 
-  # Route for VPC local traffic
-  route {
-    cidr_block = "192.168.0.0/16"
-    gateway_id = "local"  # Local VPC route
-  }
-
   # Route for Internet access (default route)
   route {
     cidr_block = "0.0.0.0/0"
-    nat_gateway_id = var.nat_gw_id # Internet Gateway reference
+    nat_gateway_id = var.nat_gw_id # Nat Gateway reference
   }
 
   tags = {

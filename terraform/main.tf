@@ -73,46 +73,51 @@ module "my_nat_gw" {
 #   subnets_public = [module.subnets_public.subnet_ids[0], module.subnets_public.subnet_ids[1]]
   subnets_public = [for subnets in module.subnets_public.subnet_ids: subnets]
 }
-#
-#
-# S3 bucket
-resource "aws_s3_bucket" "my_bucket" {
-  bucket = var.bucket_name
 
-  tags = {
-    Name        = "Mybucket"
-    Environment = "Dev"
-  }
-}
-
-resource "aws_s3_bucket_acl" "my_bucket" {
-  bucket = aws_s3_bucket.my_bucket.id
-  acl    = "private"
-}
-
-module "my_scg" {
+module "scg" {
   source = "./06-scg"
   vpc_id = module.vpc.vpc_id
 }
-resource "aws_s3_bucket_versioning" "versioning_example" {
-  bucket = aws_s3_bucket.my_bucket.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-#
-#
-# Create EC2 instance
-resource "aws_instance" "my_ec2_1a" {
-  ami           = var.ami  # Amazon Linux 2 AMI
-  instance_type = var.instance_type
-  subnet_id     = module.subnets_private.subnet_ids[0]
-  security_groups = [module.my_scg.ec2_scg_name]
 
-  tags = {
-    Name = "MyEC2Instance-1a"
-  }
+module "nlb" {
+  source = "./07-lb"
+  vpc_id = module.vpc.vpc_id
+  subnet_ids = [for subnet_id in module.subnets_public.subnet_ids : subnet_id]
+  scg_nlb_id = module.scg.nlb_security_group_id
 }
+
+module "asg-1b" {
+  source = "./08-asg"
+  asg_subnet_ids = [module.subnets_private.subnet_ids[1]]
+  asg_lb_target_gp_arn = module.nlb.lb_target_group_arn
+  ec2_scg_id = module.scg.ec2_scg_id
+  ec2_type = var.instance_type
+  image_id = var.ami
+}
+
+# S3 bucket
+module "s3" {
+  source = "./s3-bucket"
+  bucket = var.bucket_name
+  name   = "Maybank Bucket"
+  env    = "Dev"
+}
+
+module "ec2-1a" {
+  source = "./ec2"
+  image_id = var.ami
+  ec2_type = var.instance_type
+  ec2_private_subnet_cidrs = module.subnets_private.subnet_ids[0]
+  ec2_scg_name = module.scg.ec2_scg_id
+  ec2_name = "maybank-1a"
+}
+
+module "rds" {
+  source = "./rds"
+  db_private_subnet_ids = module.subnets_private.subnet_ids
+  db_scg_ids = [module.scg.mariadb_scg_id]
+}
+
 #
 # # Launch Template for EC2 instances
 # # resource "aws_launch_template" "template" {
