@@ -38,7 +38,7 @@ resource "aws_db_instance" "my_rds_read_replica" {
   instance_class         = "db.t3.micro"
   publicly_accessible    = false
   availability_zone      = "ap-southeast-1a" # Replica in a different AZ
-  db_subnet_group_name   = aws_db_subnet_group.my_db_subnet_group.name
+#   db_subnet_group_name   = aws_db_subnet_group.my_db_subnet_group.name
   vpc_security_group_ids = var.db_scg_ids
 
   tags = {

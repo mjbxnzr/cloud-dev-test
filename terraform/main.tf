@@ -77,6 +77,7 @@ module "my_nat_gw" {
 module "scg" {
   source = "./06-scg"
   vpc_id = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
 }
 
 module "nlb" {
@@ -90,11 +91,27 @@ module "asg-1b" {
   source = "./08-asg"
   asg_subnet_ids = [module.subnets_private.subnet_ids[1]]
   asg_lb_target_gp_arn = module.nlb.lb_target_group_arn
-  ec2_scg_id = module.scg.ec2_scg_id
+  ec2_scg_id = module.scg.ec2_private_scg_id
   ec2_type = var.instance_type
   image_id = var.ami
 }
 
+module "cloudfront" {
+  source = "./09-cloudfront"
+  nlb_dns_name = module.nlb.nlb_dns_name
+  bucket_regional_domain_name = module.s3.bucket_regional_domain_name
+}
+
+module "vpc-endpoints" {
+  source = "./10-vpc-endpoints"
+  vpc_id = module.vpc.vpc_id
+  region = "ap-southeast-1"
+  vpc_endpoint_security_group_id = module.scg.vpc_endpoint_security_group_id
+}
+
+module "iam_profile" {
+  source = "./11-iam"
+}
 # S3 bucket
 module "s3" {
   source = "./s3-bucket"
@@ -103,13 +120,15 @@ module "s3" {
   env    = "Dev"
 }
 
+
 module "ec2-1a" {
   source = "./ec2"
   image_id = var.ami
   ec2_type = var.instance_type
-  ec2_private_subnet_cidrs = module.subnets_private.subnet_ids[0]
-  ec2_scg_name = module.scg.ec2_scg_id
+  ec2_private_subnet_cidrs = module.subnets_public.subnet_ids[0]
+  ec2_scg_name = module.scg.ec2_ssm_sg_id
   ec2_name = "maybank-1a"
+  iam_instance_profile = module.iam_profile.ec2_instance_profile_name
 }
 
 module "rds" {
@@ -118,70 +137,3 @@ module "rds" {
   db_scg_ids = [module.scg.mariadb_scg_id]
 }
 
-#
-# # Launch Template for EC2 instances
-# # resource "aws_launch_template" "template" {
-# #   name_prefix     = "MyEC2Instanc-1b"
-# #   image_id        = var.ami
-# #   instance_type   = var.instance_type
-# #   vpc_security_group_ids = [aws_security_group.ec2_sg.name]
-# # }
-# #
-# # resource "aws_autoscaling_group" "autoscale" {
-# #   name                  = "test-autoscaling-group"
-# #   desired_capacity      = 3
-# #   max_size              = 6
-# #   min_size              = 3
-# #   health_check_type     = "EC2"
-# #   termination_policies  = ["OldestInstance"]
-# #   vpc_zone_identifier   = [aws_subnet.private_subnet_1b.id]
-# #   target_group_arns = [aws_lb_target_group.tg.arn]
-# #
-# #   launch_template {
-# #     id      = aws_launch_template.template.id
-# #     version = "$Latest"
-# #   }
-# # }
-#
-# # Create the primary RDS instance in AZ1
-# # resource "aws_db_instance" "my_rds" {
-# #   allocated_storage    = 20
-# #   engine               = "mysql"
-# #   engine_version       = "8.0"
-# #   instance_class       = "db.t2.micro"
-# #   db_name              = "mydatabase"
-# #   username             = "admin"
-# #   password             = "password123"  # Replace with a stronger password
-# #   db_subnet_group_name = aws_db_subnet_group.my_db_subnet_group.name
-# #   vpc_security_group_ids = [aws_security_group.mariadb_sg.id]
-# #   multi_az             = false  # Disable Multi-AZ for primary DB, as we are manually creating the read replica
-# #
-# #   tags = {
-# #     Name = "MyRDSInstance"
-# #   }
-# # }
-#
-# # Create DB Subnet Group for RDS
-# resource "aws_db_subnet_group" "my_db_subnet_group" {
-#   name       = "my-db-subnet-group"
-#   subnet_ids = [aws_subnet.private_subnet_1a.id, aws_subnet.private_subnet_1b.id]  # Both subnets for RDS and replica
-#
-#   tags = {
-#     Name = "MyDBSubnetGroup"
-#   }
-# }
-#
-# # Create the RDS read replica in AZ2
-# # resource "aws_db_instance" "my_rds_read_replica" {
-# #   identifier             = "my-rds-read-replica"
-# #   replicate_source_db    = aws_db_instance.my_rds.id  # The primary DB ID to replicate from
-# #   instance_class         = "db.t2.micro"
-# #   publicly_accessible    = false
-# #   availability_zone      = "us-east-1a" # Replica in a different AZ
-# #   db_subnet_group_name   = aws_db_subnet_group.my_db_subnet_group.name
-# #   vpc_security_group_ids = [aws_security_group.mariadb_sg.id]
-# #
-# #   tags = {
-# #     Name = "MyRDSReadReplica"
-# #   }
-# # }

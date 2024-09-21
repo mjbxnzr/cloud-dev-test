@@ -1,5 +1,24 @@
 # Security Group for EC2
-resource "aws_security_group" "ec2_sg" {
+resource "aws_security_group" "ec2_ssm_sg" {
+  name_prefix = "instance-sg"
+  vpc_id      = var.vpc_id
+  description = "security group for the EC2 instance"
+
+  # Allow outbound HTTPS traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Enable traffic to internet"
+  }
+
+  tags = {
+    Name = "EC2 Instance security group"
+  }
+}
+
+resource "aws_security_group" "ec2_private_sg" {
   vpc_id = var.vpc_id
 
   ingress {
@@ -62,5 +81,31 @@ resource "aws_security_group" "nlb_security_group" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Security group for VPC Endpoints
+resource "aws_security_group" "vpc_endpoint_security_group" {
+  name_prefix = "vpc-endpoint-sg"
+  vpc_id      = var.vpc_id
+  description = "security group for VPC Endpoints"
+
+  # Allow inbound HTTPS traffic
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr_block]
+    description = "Allow HTTPS traffic from VPC"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "VPC Endpoint security group"
   }
 }
