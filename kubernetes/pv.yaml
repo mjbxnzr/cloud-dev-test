@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: efs-pv
+  namespace: maybank
 spec:
   capacity:
     storage: 5Gi
@@ -11,4 +12,4 @@ spec:
   storageClassName: efs-sc
   csi:
     driver: efs.csi.aws.com
-    volumeHandle: <YOUR_EFS_FILE_SYSTEM_ID>  # Replace with your EFS File System ID
+    volumeHandle: fs-07b76cc90d390dd3e::fsap-0e1a272672ed3b38c

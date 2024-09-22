@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: busybox
+  name: busybox-service
+  namespace: maybank
+spec:
+  clusterIP: 10.96.202.232
+  clusterIPs:
+    - 10.96.202.232
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: busybox
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
