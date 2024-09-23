@@ -37,5 +37,7 @@ variable "availability_zones" {
 
 
 variable "db_pass" {}
-
 variable "db_user" {}
+variable "aws_access_key" {}
+variable "aws_secret_key" {}
+variable "aws_region" {}
