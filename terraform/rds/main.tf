@@ -6,8 +6,8 @@ resource "aws_db_instance" "my_rds" {
   engine               = "mariadb"       # Specify MariaDB engine
   instance_class       = "db.t3.micro"
   db_name              = "mydatabase"
-  username             = "admin"
-  password             = "password123"
+  username             = var_db_user
+  password             = var.db_pass
   availability_zone    = "ap-southeast-1b"
   db_subnet_group_name = aws_db_subnet_group.my_db_subnet_group.name
   vpc_security_group_ids = var.db_scg_ids

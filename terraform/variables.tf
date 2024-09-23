@@ -34,3 +34,8 @@ variable "private_subnet_cidrs" {
 variable "availability_zones" {
   default = ["ap-southeast-1a", "ap-southeast-1b"]
 }
+
+
+variable "db_pass" {}
+
+variable "db_user" {}

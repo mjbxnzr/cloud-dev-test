@@ -135,5 +135,7 @@ module "rds" {
   source = "./rds"
   db_private_subnet_ids = module.subnets_private.subnet_ids
   db_scg_ids = [module.scg.mariadb_scg_id]
+  db_pass = var.db_pass
+  db_user = var.db_user
 }
 
